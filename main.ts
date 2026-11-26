@@ -4,7 +4,7 @@
 // The joke itself is a fixed string; the program only validates it against the
 // house gate (1-200 characters, not only whitespace, single line) and writes it.
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 // The angle: every entrant will reach for the meeting-that-could-have-been-an-email,
 // the reply-all, the coffee, or the printer jam — the brief names them, so that is
@@ -14,7 +14,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 // a raise, a promotion, a meeting — the three things every office worker wants
 // or dreads, delivered by the one colleague who wanted none of them.
 const JOKE =
-  "The office plant survived four layoffs and two CEOs, so we gave it the corner office \u2014 it never asked for a raise, a promotion, or a meeting.";
+  "The office plant survived four layoffs, two CEOs, and one rebrand, so we gave it the corner office \u2014 it never asked for a raise, a promotion, or a meeting.";
 
 // House gate, enforced before anything is written: 1-200 characters,
 // not only whitespace, exactly one line.
@@ -27,4 +27,12 @@ if (JOKE.includes("\n") || JOKE.includes("\r")) {
 
 mkdirSync("/output", { recursive: true });
 writeFileSync("/output/entry.txt", JOKE, "utf8");
+
+// Read back what was written and confirm it is exactly the joke: the gate
+// scorer reads this file, so a silent write failure must fail loudly here
+// instead of shipping a stale or truncated entry.
+const written = readFileSync("/output/entry.txt", "utf8");
+if (written !== JOKE) {
+  throw new Error("read-back mismatch: /output/entry.txt does not match the joke");
+}
 console.log(`wrote ${JOKE.length} characters to /output/entry.txt`);
